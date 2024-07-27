@@ -4,13 +4,15 @@ from pathlib import Path
 
 ROOT = Path(click.get_app_dir("cinema"))
 CONFIG_FILENAME = "config.json"
-DEFAULT_CONFIG = {"api_key": "this is an api key!"}
+DATA_DIR = ROOT / "data"
+DEFAULT_CONFIG = {"api_key": "this is an api key!", "data_dir": DATA_DIR.as_posix()}
 
 
 def load_config():
     path = ROOT / "config.json"
-    if not ROOT.exists():
-        ROOT.mkdir(exist_ok=True)
+    for item in [ROOT, DATA_DIR]:
+        if not item.exists():
+            item.mkdir()
 
     apikey_path = ROOT / "api.key"
     if apikey_path.exists():
