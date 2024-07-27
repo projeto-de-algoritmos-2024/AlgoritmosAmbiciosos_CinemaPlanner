@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "cinema-planner"
+version = "0.1.0"
+description = ""
+authors = ["Guilherme Marques <marquesguilherme3@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+click = "^8.1.7"
+requests = "^2.32.3"
+
+[tool.poetry.scripts]
+cinema = "cinema_planner.cli:cli"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
