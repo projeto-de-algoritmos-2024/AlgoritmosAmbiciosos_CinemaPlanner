@@ -12,6 +12,11 @@ def load_config():
     if not ROOT.exists():
         ROOT.mkdir(exist_ok=True)
 
+    apikey_path = ROOT / "api.key"
+    if apikey_path.exists():
+        with open(apikey_path, "r") as file:
+            DEFAULT_CONFIG["api_key"] = file.read().strip()
+
     if not path.exists():
         save_config(DEFAULT_CONFIG)
         return DEFAULT_CONFIG

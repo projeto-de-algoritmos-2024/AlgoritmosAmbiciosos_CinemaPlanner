@@ -1,5 +1,6 @@
 import click
 from .config import load_config
+from .commands.fetch import fetch
 
 
 @click.group()
@@ -22,3 +23,6 @@ def config():
 def show(obj: dict):
     """Show configuration."""
     click.echo(obj["config"])
+
+
+cli.add_command(fetch)
