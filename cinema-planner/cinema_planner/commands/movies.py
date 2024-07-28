@@ -3,6 +3,10 @@ import random
 import heapq
 import json
 import os
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib import colors
 from ..models import Movie, ShowTime
 from sqlalchemy.orm import sessionmaker, Session
 from .fetch import fetch
@@ -86,9 +90,59 @@ def interval_partitioning(show_times):
     return show_times
 
 
+def create_pdf(rooms: dict, out_path: str | None = None):
+    out = "show_times.pdf"
+    if out_path:
+        out = out_path
+    doc = SimpleDocTemplate(out, pagesize=letter)
+    styles = getSampleStyleSheet()
+    story = []
+
+    for room, shows in rooms.items():
+        story.append(Paragraph(f"Room {room}", styles["Heading2"]))
+
+        table_data = [["Title", "Start Time", "End Time"]]
+        for show in shows:
+            table_data.append(
+                [
+                    show["title"],
+                    show["start"],
+                    show["end"],
+                ]
+            )
+
+        table = Table(table_data)
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                    ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ]
+            )
+        )
+
+        story.append(table)
+        story.append(Spacer(1, 12))
+
+    doc.build(story)
+
+
 @movies.command()
 @click.pass_obj
-def plan(obj: dict):
+@click.option(
+    "-o",
+    "--output",
+    "output_path",
+    default=None,
+    type=click.STRING,
+    help="Schedule output path",
+)
+def plan(obj: dict, output_path: str):
     SessionLocal: sessionmaker[Session] = obj["session"]
     session = SessionLocal()
     movies = session.query(Movie).all()
@@ -107,7 +161,7 @@ def plan(obj: dict):
     result = interval_partitioning(schedule)
     final_schedule = {}
     for item in result:
-        key = f"room#{item['room']}"
+        key = item["room"]
         entry = {
             "title": item["title"],
             "movie_id": item["movie_id"],
@@ -127,7 +181,8 @@ def plan(obj: dict):
     with open(os.path.join(data_dir, filename), "w", encoding="utf-8") as file:
         file.write(json_schedule)
 
-    click.echo(f"Schedule saved to: {os.path.join(data_dir, filename)}")
+    click.echo(f"Schedule saved to: {output_path}")
+    create_pdf(final_schedule, output_path)
 
 
 @movies.command()
