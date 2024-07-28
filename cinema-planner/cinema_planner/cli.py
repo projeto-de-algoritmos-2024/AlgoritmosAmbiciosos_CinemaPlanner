@@ -4,7 +4,7 @@ from .config import load_config
 from .commands.fetch import fetch
 from .commands.movies import movies
 from .db import Base
-from .models import Movie
+from .models import Movie, ShowTime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
