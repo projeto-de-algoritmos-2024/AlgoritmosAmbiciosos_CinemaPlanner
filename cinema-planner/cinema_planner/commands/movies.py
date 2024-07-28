@@ -1,6 +1,6 @@
 import click
 import random
-from ..models import Movie
+from ..models import Movie, ShowTime
 from sqlalchemy.orm import sessionmaker, Session
 from .fetch import fetch
 from datetime import datetime, timedelta
@@ -67,15 +67,34 @@ def _generate_movie_schedule(session: Session, movie_id: int):
 
 
 @movies.command()
+@click.pass_obj
+def schedule(obj: dict):
+    """Generate schedule for all movies in database"""
+    SessionLocal: sessionmaker[Session] = obj["session"]
+    session = SessionLocal()
+    movies = session.query(Movie).all()
+    click.echo("Generating movies schedules")
+    try:
+        for movie in movies:
+            times = _generate_movie_schedule(session, movie.id)
+            for time in times:
+                showtime = ShowTime(movie_id=movie.id, time=time.time())
+                session.add(showtime)
+            session.commit()
+    except Exception as e:
+        click.echo("Error saving schedule")
+        click.echo(e)
+    finally:
+        session.close()
+
+
+@movies.command()
 @click.argument("movie_id", type=click.INT)
 @click.pass_obj
 def showtimes(obj: dict, movie_id: int):
     """Generate movie showtimes"""
     SessionLocal: sessionmaker[Session] = obj["session"]
     session = SessionLocal()
-    times = _generate_movie_schedule(session, movie_id)
-    if not times:
-        click.echo("Error building schedule")
-        return
+    times = session.query(ShowTime).filter_by(movie_id=movie_id).all()
     for time in times:
-        click.echo(time)
+        click.echo(time.time)
