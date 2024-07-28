@@ -1,6 +1,8 @@
 import click
 import random
 import heapq
+import json
+import os
 from ..models import Movie, ShowTime
 from sqlalchemy.orm import sessionmaker, Session
 from .fetch import fetch
@@ -64,7 +66,6 @@ def _generate_movie_schedule(session: Session, movie_id: int):
     except Exception as e:
         click.echo(e)
         click.echo(f"Error finding movie with id {movie_id}")
-    pass
 
 
 def interval_partitioning(show_times):
@@ -73,9 +74,8 @@ def interval_partitioning(show_times):
     room_count = 0
 
     for show in show_times:
-        click.echo(heap)
         if heap and heap[0][0] <= show["start"]:
-            end_time, room_number = heapq.heappop(heap)
+            _, room_number = heapq.heappop(heap)
             heapq.heappush(heap, (show["end"], room_number))
             show["room"] = room_number
         else:
@@ -105,9 +105,29 @@ def plan(obj: dict):
                 }
             )
     result = interval_partitioning(schedule)
+    final_schedule = {}
     for item in result:
-        click.echo(item)
-    pass
+        key = f"room#{item['room']}"
+        entry = {
+            "title": item["title"],
+            "movie_id": item["movie_id"],
+            "start": item["start"].strftime("%H:%M"),
+            "end": item["end"].strftime("%H:%M"),
+        }
+        if key in final_schedule.keys():
+            final_schedule[key].append(entry)
+        else:
+            final_schedule[key] = [entry]
+    json_schedule = json.dumps(final_schedule, indent=4, ensure_ascii=False)
+
+    config = obj["config"]
+    data_dir = config["data_dir"]
+    filename = "schedule" + str(datetime.now().timestamp()) + ".json"
+    click.echo("Saving schedule to file...")
+    with open(os.path.join(data_dir, filename), "w", encoding="utf-8") as file:
+        file.write(json_schedule)
+
+    click.echo(f"Schedule saved to: {os.path.join(data_dir, filename)}")
 
 
 @movies.command()
