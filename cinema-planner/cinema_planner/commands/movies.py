@@ -1,5 +1,6 @@
 import click
 import random
+import heapq
 from ..models import Movie, ShowTime
 from sqlalchemy.orm import sessionmaker, Session
 from .fetch import fetch
@@ -63,6 +64,49 @@ def _generate_movie_schedule(session: Session, movie_id: int):
     except Exception as e:
         click.echo(e)
         click.echo(f"Error finding movie with id {movie_id}")
+    pass
+
+
+def interval_partitioning(show_times):
+    show_times.sort(key=lambda x: x["start"])
+    heap = []
+    room_count = 0
+
+    for show in show_times:
+        click.echo(heap)
+        if heap and heap[0][0] <= show["start"]:
+            end_time, room_number = heapq.heappop(heap)
+            heapq.heappush(heap, (show["end"], room_number))
+            show["room"] = room_number
+        else:
+            room_count += 1
+            heapq.heappush(heap, (show["end"], room_count))
+            show["room"] = room_count
+
+    return show_times
+
+
+@movies.command()
+@click.pass_obj
+def plan(obj: dict):
+    SessionLocal: sessionmaker[Session] = obj["session"]
+    session = SessionLocal()
+    movies = session.query(Movie).all()
+    schedule = []
+    for movie in movies:
+        times = _generate_movie_schedule(session, movie.id)
+        for time in times:
+            schedule.append(
+                {
+                    "movie_id": movie.id,
+                    "title": movie.title,
+                    "start": time,
+                    "end": time + timedelta(minutes=int(movie.runtime)),
+                }
+            )
+    result = interval_partitioning(schedule)
+    for item in result:
+        click.echo(item)
     pass
 
 
