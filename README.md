@@ -1,45 +1,47 @@
-**!! Atenção: Renomeie o seu repositório para (Tema)_(NomeDoProjeto). !!** 
+# Greed_CinemaPlanner
 
-Temas:
- - Grafos1
- - Grafos2
- - PD
- - D&C
- - Greed
- - Final 
- 
- **!! *Não coloque os nomes dos alunos no título do repositório*. Exemplo de título correto: Grafos2_Labirinto-do-Minotauro !!**
- 
- (Apague essa seção)
-
-# NomedoProjeto
-
-**Número da Lista**: X<br>
-**Conteúdo da Disciplina**: XXXXXXXXXX<br>
+**Número da Lista**: 3<br>
+**Conteúdo da Disciplina**: Algoritmos Ambiciosos<br>
 
 ## Alunos
 |Matrícula | Aluno |
 | -- | -- |
-| xx/xxxxxx  |  xxxx xxxx xxxxx |
-| xx/xxxxxx  |  xxxx xxxx xxxxx |
+| 16/0007739  |  Guilherme Marques Rosa |
 
 ## Sobre 
-Descreva os objetivos do seu projeto e como ele funciona. 
+O projeto é uma ferramenta de linha de comando que visa auxiliar no planejamento de horários de salas de cinema de acordo com os filmes em cartaz.
 
 ## Screenshots
-Adicione 3 ou mais screenshots do projeto em funcionamento.
+**Vídeo da Execução**: [Acessar.](https://youtu.be/NlgDaX4ePLI)
 
 ## Instalação 
-**Linguagem**: xxxxxx<br>
-**Framework**: (caso exista)<br>
-Descreva os pré-requisitos para rodar o seu projeto e os comandos necessários.
+**Linguagem**: Python<br>
+**TMDB Api**: O projeto utiliza a API do The Movies Database, então é necessário criar uma conta e um token de acesso de acordo com a [Documentação](https://developer.themoviedb.org/docs/getting-started)<br>
 
+**Observação**: Ao criar uma aplicação na plataforma, não utilize a API Key, utilize o Acess Token JWT que é apresentado logo abaixo.
+
+O gerenciador de projeto utilizado é o `poetry`.
+
+Entre no diretório do projeto:
+```bash
+cd cinema-planner
+```
+
+Instale as dependências:
+```bash
+poetry install
+```
+
+Entre no shell do poetry:
+```bash
+poetry shell
+```
 ## Uso 
-Explique como usar seu projeto caso haja algum passo a passo após o comando de execução.
 
-## Outros 
-Quaisquer outras informações sobre seu projeto podem ser descritas abaixo.
+Os passos de execução são:
 
-
-
+- **Configurar o Token de Acesso**: `cinema config set-token`
+- **Buscar a lista de filmes na API**: `cinema movies fetch`
+- **Gerar os horários dos filmes**: `cinema movies schedule`
+- **Gerar o plano de salar e exportar**: `cinema movies plan -o <caminho_de_saida.pdf>`
 
