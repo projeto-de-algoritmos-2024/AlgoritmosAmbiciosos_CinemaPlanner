@@ -1,6 +1,9 @@
+import sys
+import termios
+import tty
 import click
 import os
-from .config import load_config
+from .config import load_config, save_config
 from .commands.fetch import fetch
 from .commands.movies import movies
 from .db import Base
@@ -53,6 +56,42 @@ def config():
 def show(obj: dict):
     """Show configuration."""
     click.echo(obj["config"])
+
+
+def _prompt_token(prompt: str = "Token: "):
+    print(prompt, end="", flush=True)
+    password = ""
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(fd)
+        while True:
+            char = sys.stdin.read(1)
+            if char == "\n" or char == "\r":
+                print()
+                break
+            elif char == "\x08" or char == "\x7f":
+                if len(password) > 0:
+                    password = password[:-1]
+                    sys.stdout.write("\b \b")
+            else:
+                password += char
+                sys.stdout.write("*")
+            sys.stdout.flush()
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    return password
+
+
+@config.command()
+def set_token():
+    """Set API Access Token"""
+    token = _prompt_token().strip()
+    with open(f"{click.get_app_dir('cinema')}/api.key", "w") as file:
+        file.write(token)
+    config = load_config()
+    config["api_key"] = token
+    save_config(config)
 
 
 cli.add_command(fetch)
